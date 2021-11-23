@@ -63,20 +63,27 @@ class AuthController extends Controller
             ]);
         }
 
-        $token = $user->createToken($user->email . '_Token')->plainTextToken;
+        //1= Admin
+        if ($user->role_as == 1) {
+            $role = 'admin';
+            $token = $user->createToken($user->email . '_AdminToken', ['server:admin'])->plainTextToken;
+        } else {
+            $role = '';
+            $token = $user->createToken($user->email . '_Token', [''])->plainTextToken;
+        }
 
         return response()->json([
             'status'    => 200,
             'username'  => $user->name,
             'token'     => $token,
+            'role'      => $role,
             'message'   => 'Logged In Successfully'
         ]);
     }
 
-    public function logout(User $user)
+    public function logout()
     {
-
-        $user->tokens()->delete();
+        auth()->user()->tokens()->delete();
 
         return response()->json([
             'status'    => 200,
