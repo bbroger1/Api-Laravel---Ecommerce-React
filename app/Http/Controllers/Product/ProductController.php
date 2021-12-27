@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Product;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\ProductResource;
+use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -11,14 +13,31 @@ use Illuminate\Support\Facades\Validator;
 
 class ProductController extends Controller
 {
-    public function index()
-    {
-        $products = Product::with('category')->get();
+    protected array $sortFields = ['name', 'selling_price', 'status'];
 
-        return response()->json([
-            'status'    => 200,
-            'products'   => $products
-        ]);
+    public function __construct(Product $product)
+    {
+        $this->product = $product;
+    }
+
+    public function index(Request $request)
+    {
+        $sortFieldInput = $request->input('sort_field', self::DEFAULT_SORT_FIELD);
+        $sortField      = in_array($sortFieldInput, $this->sortFields) ? $sortFieldInput : self::DEFAULT_SORT_FIELD;
+        $sortOrder      = $request->input('sort_order', self::DEFAULT_SORT_ORDER);
+        $searchInput    = $request->input('search');
+        $query          = $this->product->orderBy($sortField, $sortOrder);
+        $perPage        = $request->input('per_page') ?? self::PER_PAGE;
+        if (!is_null($searchInput)) {
+            $searchQuery = "%$searchInput%";
+            $query       = $query->where('name', 'like', $searchQuery)
+                ->orWhere('selling_price', 'like', $searchQuery)
+                ->orWhere('status', 'like', $searchQuery);
+        }
+
+        $products = $query->with(['category:id,name'])->paginate($perPage);
+
+        return ProductResource::collection($products);
     }
 
     public function store(Request $request)
@@ -199,5 +218,27 @@ class ProductController extends Controller
                 'message'   => 'Could not update product [cód. 4]' . $e
             ]);
         }
+    }
+
+    public function destroy($id)
+    {
+        if (!$product = Product::find($id)) {
+            return response()->json([
+                'status'    => 404,
+                'message'   => "Product not found"
+            ]);
+        }
+
+        if (!$product->delete($id)) {
+            return response()->json([
+                'status'    => 404,
+                'message'   => "Product Not Deleted"
+            ]);
+        }
+
+        return response()->json([
+            'status'    => 200,
+            'message'   => "Product Deleted Succesfully"
+        ]);
     }
 }

@@ -23,9 +23,9 @@ class CreateProductsTable extends Migration
             $table->string('name')();
             $table->mediumText('description')->nullable();
             $table->string('brand');
-            $table->string('selling_price');
-            $table->string('original_price');
-            $table->string('quantity');
+            $table->decimal('selling_price', 10, 2);
+            $table->decimal('original_price', 10, 2);
+            $table->integer('quantity');
             $table->string('image');
             $table->tinyInteger('featured')->default('0')->nullable();
             $table->tinyInteger('popular')->default('0')->nullable();

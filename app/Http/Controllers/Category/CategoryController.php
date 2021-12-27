@@ -3,21 +3,38 @@
 namespace App\Http\Controllers\Category;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\CategoryResource;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
 class CategoryController extends Controller
 {
-    public function index()
-    {
-        $categories = Category::all();
+    protected array $sortFields = ['name', 'slug', 'status'];
 
-        return response()->json([
-            'status'    => 200,
-            'message'   => 'Category list',
-            'data'      => $categories
-        ]);
+    public function __construct(Category $category)
+    {
+        $this->category = $category;
+    }
+
+    public function index(Request $request)
+    {
+        $sortFieldInput = $request->input('sort_field', self::DEFAULT_SORT_FIELD);
+        $sortField      = in_array($sortFieldInput, $this->sortFields) ? $sortFieldInput : self::DEFAULT_SORT_FIELD;
+        $sortOrder      = $request->input('sort_order', self::DEFAULT_SORT_ORDER);
+        $searchInput    = $request->input('search');
+        $query          = $this->category->orderBy($sortField, $sortOrder);
+        $perPage        = $request->input('per_page') ?? self::PER_PAGE;
+        if (!is_null($searchInput)) {
+            $searchQuery = "%$searchInput%";
+            $query       = $query->where('name', 'like', $searchQuery)
+                ->orWhere('slug', 'like', $searchQuery)
+                ->orWhere('status', 'like', $searchQuery);
+        }
+
+        $categories = $query->paginate($perPage);
+
+        return CategoryResource::collection($categories);
     }
 
     public function store(Request $request)
@@ -144,7 +161,7 @@ class CategoryController extends Controller
         return response()->json([
             'status'    => 200,
             'message'   => 'Category list',
-            'data'      => $categories
+            'category'  => $categories
         ]);
     }
 }

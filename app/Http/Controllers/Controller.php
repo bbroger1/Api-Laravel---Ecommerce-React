@@ -9,5 +9,9 @@ use Illuminate\Routing\Controller as BaseController;
 
 class Controller extends BaseController
 {
+    public const PER_PAGE           = 5;
+    public const DEFAULT_SORT_FIELD = 'id';
+    public const DEFAULT_SORT_ORDER = 'desc';
+
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 }
