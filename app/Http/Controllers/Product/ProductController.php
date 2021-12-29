@@ -241,4 +241,37 @@ class ProductController extends Controller
             'message'   => "Product Deleted Succesfully"
         ]);
     }
+
+    public function fetchproducts($slug)
+    {
+        $category = Category::where('slug', $slug)
+            ->where('status', 1)
+            ->first();
+
+        if ($category) {
+            $products = Product::where('category_id', $category->id)
+                ->where('status', 1)
+                ->get();
+            if ($products) {
+                return response()->json([
+                    'status' => 200,
+                    'products_data' => [
+                        'products' => $products,
+                        'category' => $category
+                    ]
+
+                ]);
+            } else {
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'No product available'
+                ]);
+            }
+        } else {
+            return response()->json([
+                'status' => 404,
+                'message' => 'No such category found'
+            ]);
+        }
+    }
 }

@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Route;
 Route::post('/register', [AuthController::class, 'store'])->name('auth.store');
 Route::post('/login', [AuthController::class, 'login'])->name('auth.login');
 Route::get('getCategory', [CategoryController::class, 'allCategories'])->name('category.getCategory');
+Route::get('fetchproducts/{slug}', [ProductController::class, 'fetchproducts'])->name('product.fetchproducts');
+
 
 
 Route::middleware(['auth:sanctum', 'isAPIAdmin'])->group(function () {
