@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 class ProductController extends Controller
 {
@@ -42,6 +43,8 @@ class ProductController extends Controller
 
     public function store(Request $request)
     {
+        $request['slug'] = Str::slug($request['slug'], '-');
+
         $validator = Validator::make($request->all(), [
             'category_id'       => 'integer|required',
             'slug'              => 'string|required|min:3|max:191',
@@ -80,7 +83,12 @@ class ProductController extends Controller
                 $file = $request->file('image');
                 $extension = $file->getClientOriginalExtension();
                 $filename = time() . '.' . $extension;
-                if (!$file->move('upload/product/', $filename)) {
+
+                $file_resize = \Intervention\Image\Facades\Image::make($file->path());
+
+                if (!$file_resize->resize(100, 100, function ($constraint) {
+                    $constraint->aspectRatio();
+                })->save('upload/product/' . $filename)) {
                     DB::rollBack();
                     return response()->json([
                         'status'    => 400,
@@ -106,7 +114,7 @@ class ProductController extends Controller
             DB::rollBack();
             return response()->json([
                 'status'    => 400,
-                'message'   => 'Could not register product [cód. 4]'
+                'message'   => 'Could not register product [cód. 4]' . $e
             ]);
         }
     }
@@ -128,6 +136,8 @@ class ProductController extends Controller
 
     public function update(Request $request, $id)
     {
+        $request['slug'] = Str::slug($request['slug'], '-');
+
         $validator = Validator::make($request->all(), [
             'category_id'       => 'integer|required',
             'slug'              => 'string|required|min:3|max:191',
@@ -184,11 +194,14 @@ class ProductController extends Controller
                 $file = $request->file('image');
                 $extension = $file->getClientOriginalExtension();
                 $filename = time() . '.' . $extension;
-                if (!$file->move('upload/product/', $filename)) {
+
+                $file_resize = \Intervention\Image\Facades\Image::make($file->path());
+
+                if (!$file_resize->resize(100, 100)->save('upload/product/' . $filename)) {
                     DB::rollBack();
                     return response()->json([
                         'status'    => 400,
-                        'message'   => 'Could not update product [cód. 2]'
+                        'message'   => 'Could not register product [cód. 2]'
                     ]);
                 };
 
@@ -271,6 +284,34 @@ class ProductController extends Controller
             return response()->json([
                 'status' => 404,
                 'message' => 'No such category found'
+            ]);
+        }
+    }
+
+    public function fetchproduct($category_slug, $product_slug)
+    {
+        $product = $this->product->with(['category' => function ($query) {
+            $query->select('id', 'name', 'slug');
+        }])->where('slug', $product_slug)
+            ->where('status', 1)
+            ->first();
+
+        if ($product) {
+            if (strtolower($product->category->slug) == strtolower($category_slug)) {
+                return response()->json([
+                    'status' => 200,
+                    'product' => $product,
+                ]);
+            } else {
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'No product found'
+                ]);
+            }
+        } else {
+            return response()->json([
+                'status' => 404,
+                'message' => 'No product found'
             ]);
         }
     }
