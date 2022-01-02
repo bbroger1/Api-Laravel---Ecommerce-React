@@ -290,28 +290,32 @@ class ProductController extends Controller
 
     public function fetchproduct($category_slug, $product_slug)
     {
-        $product = $this->product->with(['category' => function ($query) {
-            $query->select('id', 'name', 'slug');
-        }])->where('slug', $product_slug)
+        $category = Category::where('slug', $category_slug)
             ->where('status', 1)
             ->first();
 
-        if ($product) {
-            if (strtolower($product->category->slug) == strtolower($category_slug)) {
+        if ($category) {
+            $product = Product::with('category')
+                ->where('category_id', $category->id)
+                ->where('slug', $product_slug)
+                ->where('status', 1)
+                ->first();
+
+            if ($product) {
                 return response()->json([
                     'status' => 200,
-                    'product' => $product,
+                    'product' => $product
                 ]);
             } else {
                 return response()->json([
                     'status' => 404,
-                    'message' => 'No product found'
+                    'message' => 'No product available'
                 ]);
             }
         } else {
             return response()->json([
                 'status' => 404,
-                'message' => 'No product found'
+                'message' => 'No such category found'
             ]);
         }
     }

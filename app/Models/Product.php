@@ -26,9 +26,17 @@ class Product extends Model
         'popular',
         'status'
     ];
-
+    public function cart()
+    {
+        return $this->hasMany(Cart::class, 'user_id');
+    }
     public function category()
     {
         return $this->belongsTo(Category::class, 'category_id', 'id');
+    }
+
+    public function purchase()
+    {
+        return $this->hasMany(Purchase::class, 'product_id');
     }
 }

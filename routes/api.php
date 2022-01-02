@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Cart\CartController;
 use App\Http\Controllers\Category\CategoryController;
 use App\Http\Controllers\Product\ProductController;
 use Illuminate\Support\Facades\Route;
@@ -8,10 +9,14 @@ use Illuminate\Support\Facades\Route;
 //routes publicas
 Route::post('/register', [AuthController::class, 'store'])->name('auth.store');
 Route::post('/login', [AuthController::class, 'login'])->name('auth.login');
+
+//routes apresentação dos produtos no frontend
 Route::get('getCategory', [CategoryController::class, 'allCategories'])->name('category.getCategory');
 Route::get('fetchproducts/{slug}', [ProductController::class, 'fetchproducts'])->name('product.fetchproducts');
 Route::get('fetchproduct/{category}/{product}', [ProductController::class, 'fetchproduct'])->name('product.fetchproduct');
 
+//routes carrinho
+Route::post('/add-cart', [CartController::class, 'store'])->name('cart.store');
 
 Route::middleware(['auth:sanctum', 'isAPIAdmin'])->group(function () {
     Route::get('/checkAuthenticated', function () {
