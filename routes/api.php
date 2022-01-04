@@ -17,6 +17,7 @@ Route::get('fetchproduct/{category}/{product}', [ProductController::class, 'fetc
 
 //routes carrinho
 Route::post('/add-cart', [CartController::class, 'store'])->name('cart.store');
+Route::get('/cart', [CartController::class, 'show'])->name('cart.show');
 
 Route::middleware(['auth:sanctum', 'isAPIAdmin'])->group(function () {
     Route::get('/checkAuthenticated', function () {
@@ -41,4 +42,5 @@ Route::middleware(['auth:sanctum', 'isAPIAdmin'])->group(function () {
 
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('auth.logout');
+    Route::put('/update-purchase', [CartController::class, 'updatePurchase'])->name('cart.update');
 });

@@ -37,6 +37,6 @@ class Product extends Model
 
     public function purchase()
     {
-        return $this->hasMany(Purchase::class, 'product_id');
+        return $this->hasMany(Purchase::class, 'product_id', 'id');
     }
 }
