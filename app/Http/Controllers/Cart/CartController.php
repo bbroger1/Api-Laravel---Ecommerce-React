@@ -256,6 +256,53 @@ class CartController extends Controller
         }
     }
 
+    public function destroy($id)
+    {
+        if (!auth('sanctum')->check()) {
+            return response()->json([
+                'status' => 401,
+                'message' => 'Please login first'
+            ]);
+        }
+
+        $purchase = $this->purchase->where('id', $id)->first();
+
+        if (!$purchase) {
+            return response()->json([
+                'status' => 404,
+                'message' => 'Purchase not deleted'
+            ]);
+        }
+
+        DB::beginTransaction();
+        $product = $this->product->where('id', $purchase->product_id)->first();
+        $cart = $this->cart->where('id', $purchase->cart_id)->first();
+        $total = floatVal($cart->total) - floatVal($product->selling_price);
+
+        if (!$cart->update(['total' => $total])) {
+            DB::rollBack();
+            return response()->json([
+                'status' => 404,
+                'message' => 'Purchase not deleted'
+            ]);
+        }
+
+        if (!$purchase->delete($id)) {
+            DB::rollBack();
+            return response()->json([
+                'status' => 404,
+                'message' => 'Purchase not deleted'
+            ]);
+        }
+
+        DB::commit();
+        return response()->json([
+            'status' => 200,
+            'message' => 'Purchase deleted',
+            'total_cart' => $total
+        ]);
+    }
+
     private function productTotal($product_id, $quantity)
     {
         $product = $this->product->where("id", $product_id)->first();

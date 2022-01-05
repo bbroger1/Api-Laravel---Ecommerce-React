@@ -7,8 +7,8 @@ use App\Http\Controllers\Product\ProductController;
 use Illuminate\Support\Facades\Route;
 
 //routes publicas
-Route::post('/register', [AuthController::class, 'store'])->name('auth.store');
-Route::post('/login', [AuthController::class, 'login'])->name('auth.login');
+Route::post('register', [AuthController::class, 'store'])->name('auth.store');
+Route::post('login', [AuthController::class, 'login'])->name('auth.login');
 
 //routes apresentação dos produtos no frontend
 Route::get('getCategory', [CategoryController::class, 'allCategories'])->name('category.getCategory');
@@ -16,11 +16,11 @@ Route::get('fetchproducts/{slug}', [ProductController::class, 'fetchproducts'])-
 Route::get('fetchproduct/{category}/{product}', [ProductController::class, 'fetchproduct'])->name('product.fetchproduct');
 
 //routes carrinho
-Route::post('/add-cart', [CartController::class, 'store'])->name('cart.store');
-Route::get('/cart', [CartController::class, 'show'])->name('cart.show');
+Route::post('add-cart', [CartController::class, 'store'])->name('cart.store');
+Route::get('cart', [CartController::class, 'show'])->name('cart.show');
 
 Route::middleware(['auth:sanctum', 'isAPIAdmin'])->group(function () {
-    Route::get('/checkAuthenticated', function () {
+    Route::get('checkAuthenticated', function () {
         return response()->json(['message' => 'You are in', 'status' => 200], 200);
     });
 
@@ -41,6 +41,7 @@ Route::middleware(['auth:sanctum', 'isAPIAdmin'])->group(function () {
 });
 
 Route::middleware(['auth:sanctum'])->group(function () {
-    Route::post('/logout', [AuthController::class, 'logout'])->name('auth.logout');
-    Route::put('/update-purchase', [CartController::class, 'updatePurchase'])->name('cart.update');
+    Route::post('logout', [AuthController::class, 'logout'])->name('auth.logout');
+    Route::put('update-purchase', [CartController::class, 'updatePurchase'])->name('cart.update');
+    Route::delete('delete-purchase/{id}', [CartController::class, 'destroy'])->name('cart.destroy');
 });
